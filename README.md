@@ -1,5 +1,5 @@
 # PityBoy
-PityBoy is fantasy console inspired by Gameboy
+PityBoy is a fantasy console inspired by Gameboy
 
 160x128, 4 colors and no bitmap drawing (Except editor).
 Map : 256x256x4 switchable by game.
