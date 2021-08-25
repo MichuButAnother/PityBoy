@@ -14,7 +14,7 @@ TO DO: SFX and music
 
 `PityBoy Project_folder [-h] [-s] [-m]`
 ### Parameters: 
-`Project_folder` Path to folder of project, Requires `code.lua` inside project folder, PityBoy Editor is not coming with text editor!  
+`Project_folder` Path to the folder of a project, Requires `code.lua` inside project folder, PityBoy Editor is not coming with text editor!  
 `-h` Shows help about PityBoy and exits  
 `-s` Skips startup animation  
 `-m` Enables pixel smoothing (Toggleable too by Ctrl+S)
@@ -29,17 +29,17 @@ Keyboard | PityBoy
    E     | START
  Arrows  | D-PAD
 ```
-### PityBoy additional keys :
-`Ctrl+S` - Toggle pixel smoothing  
-`Ctrl++` - Larger scale (1:1)  
-`Ctrl+-` - Smaller scale (1:1)  
-For changing scale only works numpad keys, but in future it will be fixed or changed
+### PityBoy additional keys:
+`Ctrl + S` - Toggle pixel smoothing  
+`Ctrl + +` - Larger scale (1:1)  
+`Ctrl + -` - Smaller scale (1:1)  
+For changing scale only numpad keys work, but in the future it will be fixed or changed.
 
 
 # PityBoy Editor/DevKit
 
-PityBoy Editor is tool for creating projects and editing sprites and maps. 
-It have higger resolution for easier editing.
+PityBoy Editor is a tool for creating projects and editing sprites and maps. 
+It has a higher resolution for easier editing.
 
 ![obraz](https://user-images.githubusercontent.com/46056766/130841440-15a29074-307c-41ed-88a9-5a240b42260c.png)
 
@@ -49,7 +49,7 @@ It have higger resolution for easier editing.
 See [wiki](https://github.com/maniek207/PityBoy/wiki)
 
 # Building
-I am not sure if is these instructions works, please let me know.
+I am not sure if these instructions works, please let me know.
 ### Windows:
 
 1. Install MSYS2
