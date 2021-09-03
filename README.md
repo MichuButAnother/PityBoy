@@ -43,6 +43,11 @@ It has a higher resolution for easier editing.
 
 ![obraz](https://user-images.githubusercontent.com/46056766/130841440-15a29074-307c-41ed-88a9-5a240b42260c.png)
 
+# Community
+There is official PityBoy Discord server created by me!  
+If you have any question, smaller issue, sharing your creation or just to chat join here:
+https://discord.gg/5Kxb9qzHKW
+
 
 # Documentation
 
