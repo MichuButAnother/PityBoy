@@ -1,5 +1,5 @@
 # PityBoy
-PityBoy is a fantasy console platform written in C++, inspired by the famous GameBoy.
+PityBoy is a fantasy console written in C++, inspired by the famous GameBoy.
 
 It has a resolution of 160x128 pixels, uses 4 colors and doesn't have bitmap drawing (excluding the editor). Currently there's no support for SFX and music.
 Each game can contain up to 256 tiles, 256 sprites and four 256x256 maps.
