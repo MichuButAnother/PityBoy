@@ -1,5 +1,6 @@
 # PityBoy
-Originally made by maniek207.
+**Originally made by maniek207.**
+**This project may not receive updates, or receive them rarely.**
 
 PityBoy is a fantasy console written in C++, inspired by the famous GameBoy.
 
