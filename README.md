@@ -59,5 +59,5 @@ These instruction work 100% for Linux, i'm sure they work for Windows too howeve
 
 ### Linux:
 1. Install `g++` and `binutils`
-2. Install dev libs: `SFML`, `boost-filesystem`, `boost-system` and `Lua (5.4)`
+2. Install dev libs: `SFML (libsfml-dev)`, `boost-filesystem & boost-system (both libboost-all-dev)` and `Lua 5.4 (lua5.4)`
 3. Type `make` in the Editor or Player folder
