@@ -57,7 +57,12 @@ These instruction work 100% for Linux, i'm sure they work for Windows too howeve
 2. In `MSYS2` install the following libs: `SFML`, `Boost` and `Lua (5.4)`
 3. Type `make` in Editor or Player folder
 
-### Linux:
+### Ubuntu/Debian:
 1. Install `g++` and `binutils`
 2. Install dev libs: `SFML (libsfml-dev)`, `boost-filesystem & boost-system (both libboost-all-dev)` and `Lua 5.4 (liblua5.4-dev)`
 3. Type `make` in the Editor or Player folder
+
+### Fedora/CentOS:
+1. Install `g++` and `binutils`
+2. Install dev libs: `SFML-devel`, `boost-devel`, `lua`, `libstdc++-static`
+3. Type `make` in the Editor or Player folder.
