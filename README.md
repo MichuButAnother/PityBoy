@@ -49,8 +49,7 @@ If you have any questions, issues, want to share your creation or just chat - jo
 See the [wiki](https://github.com/maniek207/PityBoy/wiki)
 
 # Building
-~~I am not sure if these instructions works, please let me know.~~ <br>
-These instruction work 100% for Linux, i'm sure they work for Windows too however i didn't test it yet.
+Instructions for Windows and Ubuntu/Debian need verification, but I'm sure they'll work.
 
 ### Windows:
 1. Install `MSYS2`
