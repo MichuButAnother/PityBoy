@@ -1,3 +1,33 @@
+/*
+MIT License
+
+Copyright (c) 2021 Piter
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* 
+Code was mess, code is mess and code will be mess. 
+Sorry for that, maybe in future there will be rewrite of entire code.
+--Please don't look at awful formating, loops and variables labels--
+*/
+
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -6,29 +36,41 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
-// PROJECT.INFO STRUCTURE (sorry for bad english)
+// PROJECT.INFO STRUCTURE (sorry for bad english, bruh)
 /* HEX
    name   | offset | size | value? | type    | desc...
  header   | 0x00   | 2    |   PB   | char[2] | -
- version  | 0x02   | 2    | now 01 | uint16  | version
+ version  | 0x02   | 2    |        | uint16  | version
  codename | 0x04   | 16   |   -    | char[16]| codename (folder name by default)
  name     | 0x14   | 32   |   -    | char[32]| cart name
  owner id | 0x34   | 4    |   -    | uint16  | real owner (0) if project not downloaded (to do)
-*/
+
 
 // SPRITES.PIT STRUCTURE
-/* HEX
+ HEX
    name   | offset | size | value? | type    | desc...
  header   | 0x00   | 4    |  PBSP  | char[4] | -
- version  | 0x04   | 2    | now 01 | uint16  | version
- sprites  | 0x06   | 32768|   -    | char[16]| sprites, from left up to right, saved in 8bpp (0-3, ik waste of space but its 2021) and later converted in player to 2bpp
-*/
+ version  | 0x04   | 2    | ver    | uint16  | version
+ sprites  | 0x06   | 32768|   -    | char[]  | sprites, from left up to right, saved in 8bpp (0-3, ik waste of space but its 2021) and later converted in player to 2bpp
+
 // MAP.PIT STRUCTURE
-/* HEX
+ HEX
    name   | offset | size | value? | type    | desc...
  header   | 0x00   | 4    |  PBMP  | char[4] | -
- version  | 0x04   | 2    | now 01 | uint16  | version
- map data | 0x06   | 65536|   -    | char[16]| map, from left up to right
+ version  | 0x04   | 2    |        | uint16  | version
+ map data | 0x06   | 65536|   -    | char[]  | map, from left up to right
+ // SFX.PIT STRUCTURE
+ HEX
+
+ // SFX.PIT STRUCTURE
+ HEX
+   name   | offset | size | value? | type    | desc...
+ header   | 0x00   | 4    |  PBXP  | char[4] | -
+ version  | 0x04   | 2    |        | uint16  | version
+ sfx data | 0x06   |786432|   -    | char[]  | SFX data, just copied array
+
+ TO DO...
+
 */
 class PityProject {
 
@@ -39,11 +81,12 @@ class PityProject {
         */
         string folder=""; // should end with '/'
 
-        int project_info_pass=2;
-
         char sprites[8][8][512];
 
         unsigned char maps[256][256][4];
+
+        char sfx[16][3][64];
+
 
         /**
         Check is folder good
@@ -270,7 +313,6 @@ class PityProject {
         if(ofile.bad()) return false;
         int ix=0;
         int iy=0;
-        int i=0;
         char buf[8];
         buf[0]='P';
         buf[1]='B';
@@ -301,6 +343,7 @@ class PityProject {
            g++;
            if(g>3) break;
             }
+          return true;
         }
 
         bool load_maps() {
@@ -323,7 +366,6 @@ class PityProject {
 
         ifile.seekg(6);
         int ix,iy;
-        int i=0;
         char buf[3];
 
         //while(1) {
