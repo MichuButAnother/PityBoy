@@ -1,3 +1,5 @@
+#pragma once
+
 namespace PityBoy {
 
     const char drag_icon[] = {
