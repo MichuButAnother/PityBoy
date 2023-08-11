@@ -1,7 +1,4 @@
 # PityBoy
-**Originally made by maniek207. <br>**
-**This project may not receive updates - Development is halted due to inexperience.**
-
 PityBoy is a fantasy console written in C++, inspired by the famous GameBoy.
 
 It has a resolution of 160x128 pixels, uses 4 colors and doesn't have bitmap drawing (excluding the editor). Currently there's no support for SFX and music.
@@ -49,19 +46,4 @@ If you have any questions, issues, want to share your creation or just chat - jo
 See the [wiki](https://github.com/maniek207/PityBoy/wiki)
 
 # Building
-Instructions for Windows and Ubuntu/Debian need verification, but I'm sure they'll work.
-
-### Windows:
-1. Install `MSYS2`
-2. In `MSYS2` install the following libs: `SFML`, `Boost` and `Lua (5.4)`
-3. Type `make` in Editor or Player folder
-
-### Ubuntu/Debian:
-1. Install `g++` and `binutils`
-2. Install dev libs: `SFML (libsfml-dev)`, `boost-filesystem & boost-system (both libboost-all-dev)` and `Lua 5.4 (liblua5.4-dev)`
-3. Type `make` in the Editor or Player folder
-
-### Fedora/CentOS:
-1. Install `g++` and `binutils`
-2. Install dev libs: `SFML-devel`, `boost-devel`, `lua`, `libstdc++-static`
-3. Type `make` in the Editor or Player folder.
+to do
