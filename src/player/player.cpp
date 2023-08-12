@@ -6,21 +6,18 @@
 
 #include "../headers/shared.hpp" 
 #include "../headers/font.hpp"  // we dont need icons in player
+#include "../headers/graphics.hpp"
+
+PityBoy::PBWindow win;
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(800,600), "PityBoy");
+    
+    win.initWindow(160, 128, "PityBoy " + PityBoy::PB_Ver_Str);
 
-    window.setFramerateLimit(60);
+    while (win.isOpen()) {
+        win.eventTick();
 
-    while (window.isOpen()) {
-        sf::Event event;
-        while(window.pollEvent(event)) {
-            if(event.type == sf::Event::Closed) {
-                window.close();
-            }
-        }
-
-        window.display();
+        win.drawTick();
     }
     return 0;
 }
