@@ -16,6 +16,11 @@ namespace PityBoy {
             void eventTick(); // before draw
             void drawTick(); // draw and flush to screen
 
+            // drawing methods
+
+            void clear(int color=0);
+            void drawPixel(int x, int y, int color);
+
         private:
             sf::RenderWindow* window;
 
@@ -28,6 +33,9 @@ namespace PityBoy {
             uint8_t palette[4][3]; // local palette
 
             int defaultScaling=3;
+
+            int windowSizeX;
+            int windowSizeY;
     };
     
 }

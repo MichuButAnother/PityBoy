@@ -8,6 +8,8 @@
 
 namespace PityBoy {
     void PBWindow::initWindow(int resX, int resY, std::string windowName) {
+        windowSizeX=resX;
+        windowSizeY=resY;
         
         // copy the global palette into our palette
         memcpy(this->palette,PityBoy::palette,sizeof(PityBoy::palette));
@@ -59,9 +61,34 @@ namespace PityBoy {
 
     }
 
+
     void PBWindow::drawTick() {
         window->draw(*renderSprite);
         window->display();    
+    }
+
+
+    ////// drawing methods //////
+
+    void PBWindow::clear(int color) {
+        if(color < 0 || color >= 4) return; // check valid color index
+        
+        for(int i=0; i < windowSizeX*windowSizeY*4; i=i+4) { 
+            pixels[i] = palette[color][0]; // R
+            pixels[i+1] = palette[color][1]; // G
+            pixels[i+2] = palette[color][2]; // B
+            pixels[i+3] = 255; // A
+        }
+    }
+
+    void PBWindow::drawPixel(int x, int y, int color) {
+        if(x < 0 || x >= windowSizeX || y < 0 || y > windowSizeY) return; // check boundaries
+        if(color < 0 || color >= 4) return; // check valid color index
+
+        // set the pixel
+        pixels[((x + (y * windowSizeX)) * 4) + 0] = this->palette[color][0];
+        pixels[((x + (y * windowSizeX)) * 4) + 1] = this->palette[color][1];
+        pixels[((x + (y * windowSizeX)) * 4) + 2] = this->palette[color][2];
     }
 }
 
