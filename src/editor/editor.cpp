@@ -12,7 +12,6 @@
 PityBoy::PBWindow win;
 
 int main() {
-    
     win.initWindow(256, 160, "PityBoy Editor " + PityBoy::PB_Ver_Str);
 
     while (win.isOpen()) {

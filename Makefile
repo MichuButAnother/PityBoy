@@ -24,7 +24,7 @@ HEADERS :=  $(wildcard $(HEADER_DIR)/*.hpp)
 ifeq ($(OS),Windows_NT)
     LIBS :=
 else 
-    LIBS := -lsfml-system -lsfml-graphics -lsfml-window
+    LIBS := -lsfml-system -lsfml-graphics -lsfml-window -llua5.4
 endif
 
 

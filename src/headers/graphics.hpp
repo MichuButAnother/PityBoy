@@ -20,6 +20,8 @@ namespace PityBoy {
 
             void clear(int color=0);
             void drawPixel(int x, int y, int color);
+            void drawChar(int x,int y, char chr, int color=3);
+            void drawText(int x, int y, std::string str, int color=3);
 
         private:
             sf::RenderWindow* window;

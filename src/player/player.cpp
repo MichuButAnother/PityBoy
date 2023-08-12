@@ -3,29 +3,32 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp> 
+#include <lua5.4/lua.hpp> 
 
 #include "../headers/shared.hpp" 
-#include "../headers/font.hpp"  // we dont need icons in player
+#include "../headers/font.hpp"
 #include "../headers/graphics.hpp"
 #include "../headers/sprite.hpp"
+#include "../headers/luaapi.hpp"
+#include "../headers/commonapi.hpp"
 
 PityBoy::PBWindow win;
 
 int main() {
-    
     win.initWindow(160, 128, "PityBoy " + PityBoy::PB_Ver_Str);
 
     PityBoy::PBSprite testSprite;
+    PityBoy::CommonAPI::mainWindow = &win;
+    PityBoy::LuaEngine engine; 
 
-
+    engine.initApi();
+    
     while (win.isOpen()) {
         win.eventTick();
         win.clear();
-
-        testSprite.draw(&win, 10, 10);
         
-        win.refreshPixelArray();
-        win.drawTick();
+        engine.execute("drawPixel()"); 
+        win.drawTick(); 
     }
     return 0;
 }
