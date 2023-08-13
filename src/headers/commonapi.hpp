@@ -1,15 +1,12 @@
 #pragma once
 
-#ifndef __COMMONAPI_HPP__
-#define __COMMONAPI_HPP__
-
 #include <iostream>
 
 #include "../headers/graphics.hpp"
 
 namespace PityBoy::CommonAPI {
 
-    void throwError(std::string errorString);  
+    void throwError(std::string errorString, int line);  
 
     void drawSprite(int x, int y, int index, int scale, int transparentColor); 
 
@@ -17,4 +14,3 @@ namespace PityBoy::CommonAPI {
 
     extern PityBoy::PBWindow *mainWindow;
 }
-#endif 

@@ -3,9 +3,12 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp> 
+#include <vector>
+
+#include "../headers/controls.hpp"
 
 namespace PityBoy {
-    class PBWindow {
+    class PBWindow : PityBoy::controls::Parent {
         public:
             void initWindow(int resX, int resY, std::string windowName);
 
@@ -15,6 +18,9 @@ namespace PityBoy {
 
             void eventTick(); // before draw
             void drawTick(); // draw and flush to screen
+
+            // pityboy editor methods (control subsystem)
+            template <typename T> void registerControl(T* t);
 
             // drawing methods
 
@@ -38,6 +44,30 @@ namespace PityBoy {
 
             int windowSizeX;
             int windowSizeY;
+
+            std::vector<PityBoy::controls::Control*> controls;
     };
-    
+
+    template <typename T> void PBWindow::registerControl(T* t) { // This cannot be defined in .cpp file due to C++ standards
+        int i=0;
+        bool putInNull=false;
+
+        for(auto && e : controls) {
+            if(e==nullptr) {
+                putInNull=true;
+                controls[i] = t;
+                break;
+            }
+            i++;
+        }
+
+        if(!putInNull) {
+            controls.push_back(t); 
+        }
+            
+        t->setup();
+    }
+
 }
+
+

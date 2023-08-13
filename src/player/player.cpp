@@ -27,7 +27,8 @@ int main() {
         win.eventTick();
         win.clear();
         
-        engine.execute("drawPixel()"); 
+        engine.execute("drawPixel(10,10,3)"); 
+
         win.drawTick(); 
     }
     return 0;

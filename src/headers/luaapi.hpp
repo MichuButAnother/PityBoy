@@ -21,6 +21,8 @@ namespace PityBoy {
             void initApi();
 
             // API //
+            static int getCurrentLine(lua_State *L);
+
             static int l_drawPixel(lua_State *L);
 
         private:  

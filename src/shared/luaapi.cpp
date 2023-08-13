@@ -65,14 +65,25 @@ namespace PityBoy {
         loadEnv(env); 
     }
 
+    int LuaEngine::getCurrentLine(lua_State *L) {
+        lua_Debug ar;
+        lua_getstack(L, 1, &ar);
+        lua_getinfo(L, "nSl", &ar);
+        return ar.currentline;
+    }
+
 
     /////// API ////////
 
     int LuaEngine::l_drawPixel(lua_State *L) {
         int args = lua_gettop(L);
         if(args!=3) { 
-           CommonAPI::throwError("invalid arguments");
+            CommonAPI::throwError("Invalid arguments",getCurrentLine(L));
         }
+        int x=lua_tointeger(L, 1);
+        int y=lua_tointeger(L, 2);
+        int c=lua_tointeger(L, 3);
+        CommonAPI::drawPixel(x,y,c);
 
         return 0;
     }

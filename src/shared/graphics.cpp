@@ -1,6 +1,7 @@
 #include "../headers/graphics.hpp"
 #include "../headers/shared.hpp" 
 #include "../headers/font.hpp" 
+#include "../headers/controls.hpp"
 
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -60,10 +61,23 @@ namespace PityBoy {
             }
         }
 
+        if(window->hasFocus()) {
+            for(auto && e : controls) {
+                if(e!=nullptr) e->handleEvent(event);
+            }
+        }
+
     }
 
 
     void PBWindow::drawTick() {
+        for(auto && e : controls) {
+            if(e!=nullptr) {
+                e->draw(this);
+            }
+        }
+        refreshPixelArray();
+
         window->draw(*renderSprite);
         window->display();    
     }
