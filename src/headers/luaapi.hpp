@@ -17,8 +17,10 @@ namespace PityBoy {
 
             void loadEnv(std::map<std::string, lua_CFunction> env); 
             int execute(std::string compile);
-        
+            int call(std::string fn);
+
             void initApi();
+
 
             // API //
             static int getCurrentLine(lua_State *L);

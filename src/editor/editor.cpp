@@ -15,7 +15,7 @@
 
 
 PityBoy::PBWindow win;
-PityBoy::controls::label testLabel(10,10,"Hello world!");
+PityBoy::controls::label testLabel(10,10,"Hello world!",2);
 
 int main() {
     win.initWindow(256, 160, "PityBoy Editor " + PityBoy::PB_Ver_Str);
@@ -23,6 +23,9 @@ int main() {
 
     while (win.isOpen()) {
         win.eventTick();
+
+        win.drawBox(10,10,10,10, 1, true);
+        win.drawBox(30,10,10,10, 1, false);
 
         win.drawTick();
     }

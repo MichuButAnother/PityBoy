@@ -1,8 +1,12 @@
 #include "../headers/commonapi.hpp"
 
 namespace PityBoy::CommonAPI { 
-    void throwError(std::string error, int line) {
+    void throwCodeError(std::string error, int line) {
         std::cout<<"Lua error at line "<<line<<": "<<error<<std::endl;
+        exit(0);
+    } 
+    void throwError(std::string error) {
+        std::cout<<error<<std::endl;
         exit(0);
     } 
 

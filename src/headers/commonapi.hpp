@@ -6,7 +6,9 @@
 
 namespace PityBoy::CommonAPI {
 
-    void throwError(std::string errorString, int line);  
+    void throwCodeError(std::string errorString, int line);  
+    void throwError(std::string errorString);  
+    
 
     void drawSprite(int x, int y, int index, int scale, int transparentColor); 
 

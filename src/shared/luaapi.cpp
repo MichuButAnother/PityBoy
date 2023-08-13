@@ -21,6 +21,7 @@
     // .rom <- cartridge
 
 namespace PityBoy {
+
     LuaEngine::LuaEngine() {
         L = luaL_newstate();
         luaL_openlibs(L);
@@ -63,6 +64,25 @@ namespace PityBoy {
             {"drawPixel", LuaEngine::l_drawPixel} 
         }; 
         loadEnv(env); 
+    } // we would have also to allow only calling drawing functions inside render(), is that possible?
+
+    int LuaEngine::call(std::string fn) {
+        lua_getglobal(L, fn.c_str());
+        switch (lua_type(L, -1)) {
+            case LUA_TFUNCTION:
+            {
+                int result = lua_pcall(L, 0,0,0);
+                if (result==0) {
+                    return 0;
+                } else {
+                    
+                }
+                break;
+            }
+            default: 
+                CommonAPI::throwError("attempt to call a value other than function in LuaEngine::call"); 
+                break; 
+        }
     }
 
     int LuaEngine::getCurrentLine(lua_State *L) {
@@ -72,13 +92,12 @@ namespace PityBoy {
         return ar.currentline;
     }
 
-
     /////// API ////////
 
     int LuaEngine::l_drawPixel(lua_State *L) {
         int args = lua_gettop(L);
         if(args!=3) { 
-            CommonAPI::throwError("Invalid arguments",getCurrentLine(L));
+            CommonAPI::throwCodeError("Invalid arguments",getCurrentLine(L));
         }
         int x=lua_tointeger(L, 1);
         int y=lua_tointeger(L, 2);

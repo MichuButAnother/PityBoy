@@ -7,6 +7,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp> 
 #include <string.h>
+#include <math.h>
 
 namespace PityBoy {
     void PBWindow::initWindow(int resX, int resY, std::string windowName) {
@@ -83,6 +84,13 @@ namespace PityBoy {
     }
 
 
+    sf::Vector2i PBWindow::getMousePos() {
+        sf::Vector2i position = sf::Mouse::getPosition(*window);
+        position.x = floor(position.x / float(window->getSize().x) * windowSizeX);
+        position.y = floor(position.y / float(window->getSize().y) * windowSizeY);
+    }
+
+
     ////// drawing methods //////
 
     void PBWindow::clear(int color) {
@@ -141,5 +149,20 @@ namespace PityBoy {
             sx++;
         }
     }
+
+    void PBWindow::drawBox(int x, int y, int w, int h, int color, bool fill) {
+
+        for(int sx = 0; sx < w; sx++) {
+            for(int sy = 0; sy < h; sy++) {
+                if(fill) {
+                    drawPixel(x+sx,y+sy,color);
+                } else {
+                    if(sx==0 || sy==0 || sx==w-1 || sy==h-1) drawPixel(x+sx,y+sy,color);
+                }
+            }   
+        }
+
+    }
+
 }
 

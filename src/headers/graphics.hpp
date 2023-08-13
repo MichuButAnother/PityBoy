@@ -22,12 +22,15 @@ namespace PityBoy {
             // pityboy editor methods (control subsystem)
             template <typename T> void registerControl(T* t);
 
+            sf::Vector2i getMousePos(); // get mouse pos after to pixel conversion
+
             // drawing methods
 
             void clear(int color=0);
             void drawPixel(int x, int y, int color);
             void drawChar(int x,int y, char chr, int color=3);
             void drawText(int x, int y, std::string str, int color=3);
+            void drawBox(int x, int y, int w, int h, int color=3, bool fill = false);
 
         private:
             sf::RenderWindow* window;
