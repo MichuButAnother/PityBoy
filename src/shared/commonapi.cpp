@@ -14,5 +14,9 @@ namespace PityBoy::CommonAPI {
         mainWindow->drawPixel(x, y, color);
     }
 
+    void drawText(int x, int y, const char* str, int color) {
+        mainWindow->drawText(x,y,(std::string)str, color);
+    }
+
     PityBoy::PBWindow *mainWindow = nullptr;
 }

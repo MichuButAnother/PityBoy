@@ -16,16 +16,28 @@
 
 PityBoy::PBWindow win;
 PityBoy::controls::label testLabel(10,10,"Hello world!",2);
+PityBoy::controls::button testButton(10,40,120,20,"Test button");
+PityBoy::controls::textBox testTextBox(10,70,16,8);
+
+int a=0;
+
+void callbackTest() {
+    a++;
+    testLabel.setText("You clicked the button " + to_string(a) + "times!");
+}
 
 int main() {
     win.initWindow(256, 160, "PityBoy Editor " + PityBoy::PB_Ver_Str);
     win.registerControl(&testLabel);
+    win.registerControl(&testButton);
+    win.registerControl(&testTextBox);
+
+    testButton.registerCallback_clicked(callbackTest);
 
     while (win.isOpen()) {
         win.eventTick();
 
-        win.drawBox(10,10,10,10, 1, true);
-        win.drawBox(30,10,10,10, 1, false);
+        win.clear();
 
         win.drawTick();
     }

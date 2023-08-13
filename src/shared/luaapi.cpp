@@ -36,12 +36,12 @@ namespace PityBoy {
         envMap = Enviorment;
     }
 
-    int LuaEngine::execute(std::string code) {
+    bool LuaEngine::execute(std::string code) {
         int preresult = luaL_loadstring(L, code.c_str()); 
 
         if (preresult != 0) {
             fprintf(stderr, "An error occurred: %s\n", lua_tostring(L,-1));
-            return 1;
+            return false;
         }
 
         for(auto const& [key,value] : envMap) { 
@@ -52,37 +52,56 @@ namespace PityBoy {
         
         if (result == 0) {
             lua_pop(L, -1);
-            return 0;
+            return true;
         } else {
             fprintf(stderr, "(2) An error occurred: %s\n", lua_tostring(L,-1));
-            return 1; 
+            return false; 
         }
     }
 
     void LuaEngine::initApi() {
         std::map<std::string, lua_CFunction> env = {
-            {"drawPixel", LuaEngine::l_drawPixel} 
+            {"pixel", LuaEngine::l_drawPixel},
+            {"text", LuaEngine::l_drawText},
         }; 
         loadEnv(env); 
-    } // we would have also to allow only calling drawing functions inside render(), is that possible?
+    }
 
-    int LuaEngine::call(std::string fn) {
+    bool LuaEngine::call(std::string fn) {
         lua_getglobal(L, fn.c_str());
-        switch (lua_type(L, -1)) {
-            case LUA_TFUNCTION:
-            {
-                int result = lua_pcall(L, 0,0,0);
-                if (result==0) {
-                    return 0;
-                } else {
-                    
-                }
-                break;
+
+        bool s = true;
+
+        if (lua_isfunction(L, -1)) {
+            int result = lua_pcall(L, 0,0,0);
+            if (result!=0) {
+                s = false;
+                CommonAPI::throwError((std::string)lua_tostring(L, -1)); 
             }
-            default: 
-                CommonAPI::throwError("attempt to call a value other than function in LuaEngine::call"); 
-                break; 
+        } else {
+            s = false;
+            CommonAPI::throwError("'"+fn+"' does not exist / is not a function."); 
         }
+
+        lua_pop(L, -1);
+        return s;
+    }
+
+    bool LuaEngine::pcall(std::string fn) { 
+        lua_getglobal(L, fn.c_str());
+
+        if (lua_isfunction(L, -1)) {
+            int result = lua_pcall(L, 0,0,0);
+            if (result==0) {
+                return true;
+            } else {
+                //CommonAPI::throwError("Pcall error: ");
+                return false;
+            }
+        } else {
+            //CommonAPI::throwError("");
+            return false; 
+        } // dude just use bools then :/
     }
 
     int LuaEngine::getCurrentLine(lua_State *L) {
@@ -94,11 +113,15 @@ namespace PityBoy {
 
     /////// API ////////
 
-    int LuaEngine::l_drawPixel(lua_State *L) {
+    void LuaEngine::assertArgs(lua_State *L, int n) {
         int args = lua_gettop(L);
-        if(args!=3) { 
+        if (args!=n) {
             CommonAPI::throwCodeError("Invalid arguments",getCurrentLine(L));
         }
+    }
+
+    int LuaEngine::l_drawPixel(lua_State *L) {
+        assertArgs(L, 3);
         int x=lua_tointeger(L, 1);
         int y=lua_tointeger(L, 2);
         int c=lua_tointeger(L, 3);
@@ -106,4 +129,15 @@ namespace PityBoy {
 
         return 0;
     }
+
+    int LuaEngine::l_drawText(lua_State *L) {
+        assertArgs(L, 4);
+
+        int x = lua_tointeger(L, 1);
+        int y = lua_tointeger(L, 2);
+        const char *str = lua_tostring(L, 3);
+        int color = lua_tointeger(L, 4);
+
+        CommonAPI::drawText(x,y,str,color);
+    } 
 }

@@ -19,6 +19,8 @@ namespace PityBoy {
 
             int compileToCartridge();
 
+            int createProject(std::string name, std::string path    );
+
         private:
             bool projectLoaded;
 

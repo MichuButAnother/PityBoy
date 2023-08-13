@@ -22,12 +22,16 @@ int main() {
     PityBoy::LuaEngine engine; 
 
     engine.initApi();
-    
+    engine.pcall("init");
+
+    engine.execute("function render() text(10,10,'im so fucking cool', 1) end");
+
     while (win.isOpen()) {
         win.eventTick();
         win.clear();
         
-        engine.execute("drawPixel(10,10,3)"); 
+        engine.call("render");
+        
 
         win.drawTick(); 
     }

@@ -60,13 +60,14 @@ namespace PityBoy {
             if(event.type == sf::Event::Closed) {
                 window->close();
             }
-        }
 
-        if(window->hasFocus()) {
-            for(auto && e : controls) {
-                if(e!=nullptr) e->handleEvent(event);
+            if(window->hasFocus()) {
+                for(auto && e : controls) {
+                    if(e!=nullptr) e->handleEvent(event, this);
+                }
             }
         }
+
 
     }
 
@@ -83,11 +84,20 @@ namespace PityBoy {
         window->display();    
     }
 
-
+    // helper functions for controls
     sf::Vector2i PBWindow::getMousePos() {
         sf::Vector2i position = sf::Mouse::getPosition(*window);
         position.x = floor(position.x / float(window->getSize().x) * windowSizeX);
         position.y = floor(position.y / float(window->getSize().y) * windowSizeY);
+        return position;
+    }
+
+    bool PBWindow::isFocused() {
+        return window->hasFocus();
+    }
+
+    void PBWindow::setMouseCursor(sf::Cursor *cursor) {
+        window->setMouseCursor(*cursor);
     }
 
 

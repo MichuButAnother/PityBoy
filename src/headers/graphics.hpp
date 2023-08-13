@@ -23,6 +23,8 @@ namespace PityBoy {
             template <typename T> void registerControl(T* t);
 
             sf::Vector2i getMousePos(); // get mouse pos after to pixel conversion
+            bool isFocused();
+            void setMouseCursor(sf::Cursor *cursor);
 
             // drawing methods
 
@@ -67,8 +69,6 @@ namespace PityBoy {
         if(!putInNull) {
             controls.push_back(t); 
         }
-            
-        t->setup();
     }
 
 }
