@@ -81,6 +81,7 @@ namespace PityBoy::controls {
     }
 
     void textBox::handleEvent(sf::Event event, PityBoy::controls::Parent* myWindow) {
+        try { // safeguard for typed code in pityboy editor
 
         if(event.type == sf::Event::MouseButtonPressed) {
 
@@ -174,7 +175,11 @@ namespace PityBoy::controls {
                 if(totalLength>=maxLength) canInsertChar=false;
             }
 
-            if(event.text.unicode > 31 && event.text.unicode < 128 && canInsertChar) { // any printable character
+            std::cout<<(int)event.text.unicode<<std::endl;
+            
+            if(event.text.unicode == '\t') event.text.unicode = ' '; // convert tab to space
+
+            if(event.text.unicode > 31 && event.text.unicode < 127&& canInsertChar) { // any printable character
                 
                 std::string currentLine = textLines.at(cursorPosY);
                 
@@ -225,10 +230,23 @@ namespace PityBoy::controls {
                         // connect the line to next line
                         textLines.at(cursorPosY) = textLines.at(cursorPosY) + tempStr;
                     } else {
-                        currentLine = currentLine.substr(0,cursorPosX-1) + currentLine.substr(cursorPosX);
-                        textLines.at(cursorPosY) = currentLine;
+                        textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX-1) + currentLine.substr(cursorPosX);
                         moveCursor(left);
                     }
+                }
+            }
+
+            if(event.text.unicode == 127) { // textbox: delete (backspace but removes character at front)
+                std::string currentLine = textLines.at(cursorPosY);
+
+                // if at end of line, remove next line (if not end) and merge it
+                if(cursorPosX == (signed)currentLine.length()) {
+                    if(cursorPosY < (signed)textLines.size()-1) { // if we are on end then dont remove
+                        textLines.at(cursorPosY) = currentLine + textLines.at(cursorPosY+1);
+                        textLines.erase(textLines.begin()+cursorPosY+1);
+                    }
+                } else { // not at end of line, remove character at front
+                    textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX) + currentLine.substr(cursorPosX+1);
                 }
             }
 
@@ -237,8 +255,6 @@ namespace PityBoy::controls {
 
 
         if(event.type == sf::Event::KeyPressed) { // textbox: special keys support
-
-            frameCounter = 0;
 
             // textbox: arrows
             if(event.key.code == sf::Keyboard::Right) { // right arrow
@@ -263,6 +279,7 @@ namespace PityBoy::controls {
                 } else {
                     cursorPosX = 0;    
                 }
+                frameCounter = 0; // this code doesn't use moveCursor()
                 scrollToCursor();
                 rememberXPos = cursorPosX;
             }
@@ -296,17 +313,29 @@ namespace PityBoy::controls {
 
         }
 
+        } catch(const std::exception& e) {
+            std::cout << "Fatal error!" << std::endl;
+            std::cout << e.what() << std::endl;
+            // in case of fatal error in string manipulation in textbox we can save user code
+            exit(0);
+        }
+
     } 
 
     /*
         Big TO DO LIST:
+        break characters for the working with words section (all tested in vscode and vscode like word cursor moving will be used)
+           [space],   ! @ # $ % ^ & * ( ) - =   + { } [ ] | \ ` ~ / < > ? . ; ' : "
+        test string: a!b@c#d$e%f^g&h*i(j)k-l=m_n+o{p}q[r]s|t\u`v~w/x<y>z?0.1;2'3:4"5 test string2: dsd  ds  fsfs  dd[[dd
+        // there must be non breakable character before breakable character: aa[a' <- will skip to [ and ', [[!\';;[ <- will skip to end. 
+        // Also [space] is special because it ignores this rule and has some other properties. 
+
+
         ##  Working with Words:
         Ctrl + Left Arrow: Move cursor to the beginning of the previous word.
         Ctrl + Right Arrow: Move cursor to the beginning of the next word.
         Ctrl + Backspace: Delete the previous word.
         Ctrl + Delete: Delete the next word.
-        Ctrl + Up Arrow: Move cursor to the beginning of the paragraph.
-        Ctrl + Down Arrow: Move cursor to the end of the paragraph.
         ## Moving the Cursor:
         Home: Move cursor to the beginning of the current line.                 DONE
         End: Move cursor to the end of the current line.                        DONE
@@ -332,6 +361,10 @@ namespace PityBoy::controls {
         Ctrl + V: Paste text at cursor.
         Ctrl + Z: Undo.
         Ctrl + Y: Redo.
+        ## While text is selected:
+        Backspace / Delete: Remove selection
+        ## While text is not selected:
+        Shift + Del: Remove entire line
     */
 
     void textBox::convertTextIntoVector() { // as function says: convert "string text" into line split vector
@@ -443,7 +476,7 @@ namespace PityBoy::controls {
                 scrollY--;
             } 
         }
-
+        frameCounter = 0;
         scrollToCursor();
     }
 
