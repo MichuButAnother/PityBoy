@@ -34,7 +34,7 @@ namespace PityBoy::controls {
     };
 
     // helper functions //
-    bool isMouseOver(int x, int y, int w, int h);
+    bool isMouseOver(int x, int y, int w, int h, int mx, int my);
     //////
 
 
@@ -86,6 +86,7 @@ namespace PityBoy::controls {
             void handleEvent(sf::Event event, PityBoy::controls::Parent* myWindow);
 
             void setDimensions(int x,int y, int w,int h);
+            void setConfig(bool allowNewLines, int maxLength);
 
         private:
             int x, y, w, h;
@@ -106,6 +107,10 @@ namespace PityBoy::controls {
             int scrollY=0;
 
             int rememberXPos;
+
+            // configuration
+            bool allowNewLines=true; // if false, the textbox is one line input
+            int maxLength=0; // 0 - infinite
 
             std::string text;
             std::vector<std::string> textLines;

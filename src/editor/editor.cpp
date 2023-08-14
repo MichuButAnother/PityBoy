@@ -32,6 +32,8 @@ int main() {
     win.registerControl(&testButton);
     win.registerControl(&testTextBox);
 
+    //testTextBox.setConfig(false, 10);
+
     testButton.registerCallback_clicked(callbackTest);
 
     while (win.isOpen()) {
