@@ -106,6 +106,9 @@ namespace PityBoy::controls {
             int scrollX=0;
             int scrollY=0;
 
+            bool controlHeld=false;
+            bool shiftHeld=false;
+
             int rememberXPos;
 
             // configuration
@@ -114,7 +117,6 @@ namespace PityBoy::controls {
 
             std::string text;
             std::vector<std::string> textLines;
-            
 
             void convertTextIntoVector();
             int getTextLongestX(); // get "width of textbox" that is just length of longest line in textLines
@@ -135,7 +137,7 @@ namespace PityBoy::controls {
 
             void typeChar(char c);
             void moveCursor(moveDirection dir);
-            void moveCursorToWord(moveDirection dir); // ctrl+arrow left/right
+            void moveCursorToWord(moveDirection dir, bool deleteWord=false); // ctrl+arrow left/right
 
             
 

@@ -58,6 +58,7 @@ $(OBJ_DIR)/editor/%.o: $(EDITOR_DIR)/%.cpp $(HEADERS)
 $(OBJ_DIR)/shared/%.o: $(SHARED_DIR)/%.cpp $(HEADERS)
 	@mkdir -p $(@D)
 	-$(CXX) $(CXXFLAGS) -c $< -o $@
+#   ^ do not forget to remove this `-` later
 
 clean:
 	rm -rf $(OBJ_DIR)/ $(BIN_DIR)/

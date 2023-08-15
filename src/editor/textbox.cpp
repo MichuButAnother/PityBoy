@@ -165,6 +165,16 @@ namespace PityBoy::controls {
 
 
         if(event.type == sf::Event::KeyPressed) { // textbox: special keys support
+            if(event.key.control) { // control and shift
+                controlHeld = true; 
+            } else {
+                controlHeld = false;
+            }
+            if(event.key.shift) {
+                shiftHeld = true;
+            } else {
+                shiftHeld = false;
+            }
 
             // textbox: arrows
             if(event.key.code == sf::Keyboard::Right) { // right arrow
@@ -268,7 +278,7 @@ namespace PityBoy::controls {
         ##  Working with Words:
         Ctrl + Left Arrow: Move cursor to the beginning of the previous word.   DONE 
         Ctrl + Right Arrow: Move cursor to the beginning of the next word.      DONE
-        Ctrl + Backspace: Delete the previous word.
+        Ctrl + Backspace: Delete the previous word.                             DONE
         Ctrl + Delete: Delete the next word.
         ## Moving the Cursor:
         Home: Move cursor to the beginning of the current line.                 DONE
@@ -443,7 +453,7 @@ namespace PityBoy::controls {
             moveCursor(right);
         }
 
-        if(c == 13 && canInsertChar) { // textbox: newline
+        if((c == 13 || c == '\n') && canInsertChar) { // textbox: newline
 
             if(allowNewLines) { // if textbox is multiline
 
@@ -462,6 +472,12 @@ namespace PityBoy::controls {
 
 
         if(c == 8) { // textbox: backspace
+            if(controlHeld) {
+                controlHeld = false; // to prevent recursion, because moveCursorToWord calls typeChar to remove character
+                moveCursorToWord(left, true);
+                controlHeld = true;
+                return;
+            }
             std::string currentLine = textLines.at(cursorPosY);
 
             // if line length is 0, just remove the line
@@ -518,7 +534,7 @@ namespace PityBoy::controls {
         return false;
     }
 
-    void textBox::moveCursorToWord(moveDirection dir) { // don't touch if its working
+    void textBox::moveCursorToWord(moveDirection dir, bool deleteWord) { // This code is for ctrl+left/right arrow and deleting text by word. don't touch if its working. 
 
         auto isBreakable = [](char c) {
             char breakableCharacters[] = {'!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '+', '{', '}', '[', ']', '|', '\\', '`', '~', '/', '<', '>', '?','.', ';', '\'', ':', '"'};
@@ -555,6 +571,7 @@ namespace PityBoy::controls {
                     if(c==' ') {
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
+                        if(deleteWord) typeChar(8);
                         goto skipIfLogicRight;
                     } else {
                         isFirstBreakable = isBreakable(c);
@@ -567,6 +584,7 @@ namespace PityBoy::controls {
                     if(isBreakable(c)) {
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
+                        if(deleteWord) typeChar(8);
                         nextSpaceBreaks = true;
                     } else {
                         break;
@@ -578,6 +596,7 @@ namespace PityBoy::controls {
                         nextSpaceBreaks = true;
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
+                        if(deleteWord) typeChar(8);
                     }
                 }
 
@@ -594,23 +613,33 @@ namespace PityBoy::controls {
             if(isCursorAtTheBegin()) return;
 
             if(cursorPosX==0) { // skip to previous line
-                moveCursor(left);
+                if(deleteWord) {
+                    typeChar(8);
+                } else {
+                    moveCursor(left);
+                }
                 return;
             }  
 
             // if we are at the end of line (prevent .at() exception)
-            bool isFirstBreakable;
+            bool isFirstBreakable; 
             bool isFirstSpace;
             bool nextSpaceBreaks;
             bool moveCursorAfterBreak=true;
             
-            moveCursor(left); // moving cursor allows to reuse code 
+            moveCursor(left); // moving cursor allows to reuse code (if not using deleteChar)
             
 
             isFirstBreakable = isBreakable(currentLine.at(cursorPosX)); // check what type of characters we going through
             isFirstSpace = currentLine.at(cursorPosX)==' ';
             nextSpaceBreaks = !isFirstSpace; // dont break on spaces that we start
             
+            char fixDeletionChar; // this fixes ctrl + backspace removing one too much character
+
+            if(deleteWord) {
+                moveCursor(right);
+                typeChar(8);
+            }
 
             int i=cursorPosX;
             while(1) {
@@ -621,7 +650,7 @@ namespace PityBoy::controls {
                 if(isFirstSpace) { // ignore first spaces
                     if(c==' ') {
                         if(cursorPosX==0) break;
-                        moveCursor(left);
+                        moveCursor(left);                        
                         goto skipIfLogicLeft;
                     } else {
                         isFirstBreakable = isBreakable(c);
@@ -655,9 +684,26 @@ namespace PityBoy::controls {
                     moveCursorAfterBreak=false;
                     break;
                 }
-            }
 
-            if(moveCursorAfterBreak) moveCursor(right);
+                if(deleteWord) {
+                    moveCursor(right);
+                    fixDeletionChar = currentLine.at(i); // just to reuse code
+                    typeChar(8);
+                }
+            }
+            // weird fix, but works
+            if(moveCursorAfterBreak) { 
+                if(deleteWord) {
+                    typeChar(fixDeletionChar);
+                } else {
+                    moveCursor(right);
+                }
+            } else {
+                if(deleteWord) {
+                    moveCursor(right);
+                    typeChar(8);
+                }
+            }
 
         }
     }
