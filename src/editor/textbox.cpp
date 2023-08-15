@@ -160,97 +160,7 @@ namespace PityBoy::controls {
         }   
 
         if(event.type == sf::Event::TextEntered) { // textbox: input
-
-            bool canInsertChar=true;
-
-            if(maxLength!=0) { // check length of our string
-                int i=0;
-                int end=textLines.size();
-                int totalLength=0;
-                for(const std::string& b : textLines ) {
-                    i++;
-                    totalLength += b.length();
-                    if(i!=end) totalLength++; // include new lines 
-                }
-                if(totalLength>=maxLength) canInsertChar=false;
-            }
-
-            std::cout<<(int)event.text.unicode<<std::endl;
-            
-            if(event.text.unicode == '\t') event.text.unicode = ' '; // convert tab to space
-
-            if(event.text.unicode > 31 && event.text.unicode < 127&& canInsertChar) { // any printable character
-                
-                std::string currentLine = textLines.at(cursorPosY);
-                
-                currentLine = currentLine.substr(0,cursorPosX) + char(event.text.unicode) + currentLine.substr(cursorPosX);
-                textLines.at(cursorPosY) = currentLine;
-
-                moveCursor(right);
-            }
-
-            if(event.text.unicode == 13 && canInsertChar) { // textbox: newline
-
-                if(allowNewLines) { // if textbox is multiline
-
-                    textLines.insert(textLines.begin() + cursorPosY + 1, "") ;
-
-                    if(cursorPosX==(signed)textLines.at(cursorPosY).length()) { // if at the end of line, just do nothing
-                        moveCursor(right);
-                    } else { // if not, substring the line
-                        std::string tempStr = textLines.at(cursorPosY).substr(cursorPosX);
-                        textLines.at(cursorPosY) = textLines.at(cursorPosY).substr(0,cursorPosX);
-                        moveCursor(right);
-                        textLines.at(cursorPosY) = tempStr;
-                    }
-                }
-            }
-
-
-            if(event.text.unicode == 8) { // textbox: backspace
-                std::string currentLine = textLines.at(cursorPosY);
-
-                // if line length is 0, just remove the line
-                if(currentLine.length()==0) {
-
-                    if(cursorPosY!=0) { // we cannot remove at begining
-
-                        int tempY = cursorPosY; 
-                        moveCursor(left);
-                        textLines.erase(textLines.begin()+tempY); // remove the line
-                    }
-
-                } else {
-                    if(cursorPosX==0) { // if we are at beginning, remove the line but move the contents
-
-                        int tempY = cursorPosY; // before moving shift the cursor
-                        moveCursor(left);
-                        std::string tempStr = textLines.at(tempY); // get the line
-                        textLines.erase(textLines.begin()+tempY);  // remove the line
-                        // connect the line to next line
-                        textLines.at(cursorPosY) = textLines.at(cursorPosY) + tempStr;
-                    } else {
-                        textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX-1) + currentLine.substr(cursorPosX);
-                        moveCursor(left);
-                    }
-                }
-            }
-
-            if(event.text.unicode == 127) { // textbox: delete (backspace but removes character at front)
-                std::string currentLine = textLines.at(cursorPosY);
-
-                // if at end of line, remove next line (if not end) and merge it
-                if(cursorPosX == (signed)currentLine.length()) {
-                    if(cursorPosY < (signed)textLines.size()-1) { // if we are on end then dont remove
-                        textLines.at(cursorPosY) = currentLine + textLines.at(cursorPosY+1);
-                        textLines.erase(textLines.begin()+cursorPosY+1);
-                    }
-                } else { // not at end of line, remove character at front
-                    textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX) + currentLine.substr(cursorPosX+1);
-                }
-            }
-
-
+            typeChar((int)event.text.unicode);
         }
 
 
@@ -258,10 +168,18 @@ namespace PityBoy::controls {
 
             // textbox: arrows
             if(event.key.code == sf::Keyboard::Right) { // right arrow
-                moveCursor(right);    
+                if(event.key.control) {
+                    moveCursorToWord(right);
+                } else {
+                    moveCursor(right);    
+                }
             }
             if(event.key.code == sf::Keyboard::Left) { // Left arrow
-                moveCursor(left);    
+                if(event.key.control) {
+                    moveCursorToWord(left);
+                } else {
+                    moveCursor(left); 
+                }
             }
 
             if(event.key.code == sf::Keyboard::Down) { // Down arrow
@@ -311,6 +229,22 @@ namespace PityBoy::controls {
                 moveCursor(up);
             }
 
+            // textbox: Ctrl+V
+            if(event.key.code == sf::Keyboard::V && event.key.control) {
+                std::string clipboardText = sf::Clipboard::getString();
+                std::stringstream stream(clipboardText);
+                std::string line;
+                int b=0;
+                while (std::getline(stream, line)) {
+                    if(b>0) typeChar(13);
+                    b++;
+                    std::replace( line.begin(), line.end(), '\t', ' '); 
+                    for(int i=0;i<(signed)line.length();i++) {
+                        typeChar(line.at(i));
+                    }
+                }
+            }
+
         }
 
         } catch(const std::exception& e) {
@@ -332,8 +266,8 @@ namespace PityBoy::controls {
 
 
         ##  Working with Words:
-        Ctrl + Left Arrow: Move cursor to the beginning of the previous word.
-        Ctrl + Right Arrow: Move cursor to the beginning of the next word.
+        Ctrl + Left Arrow: Move cursor to the beginning of the previous word.   DONE 
+        Ctrl + Right Arrow: Move cursor to the beginning of the next word.      DONE
         Ctrl + Backspace: Delete the previous word.
         Ctrl + Delete: Delete the next word.
         ## Moving the Cursor:
@@ -478,6 +412,254 @@ namespace PityBoy::controls {
         }
         frameCounter = 0;
         scrollToCursor();
+    }
+
+    void textBox::typeChar(char c) {
+        bool canInsertChar=true;
+
+        if(maxLength!=0) { // check length of our string
+            int i=0;
+            int end=textLines.size();
+            int totalLength=0;
+            for(const std::string& b : textLines ) {
+                i++;
+                totalLength += b.length();
+                if(i!=end) totalLength++; // include new lines 
+            }
+            if(totalLength>=maxLength) canInsertChar=false;
+        }
+
+        std::cout<<c<<std::endl;
+        
+        if(c== '\t') c = ' '; // convert tab to space
+
+        if(c > 31 && c < 127&& canInsertChar) { // any printable character
+            
+            std::string currentLine = textLines.at(cursorPosY);
+            
+            currentLine = currentLine.substr(0,cursorPosX) + c + currentLine.substr(cursorPosX);
+            textLines.at(cursorPosY) = currentLine;
+
+            moveCursor(right);
+        }
+
+        if(c == 13 && canInsertChar) { // textbox: newline
+
+            if(allowNewLines) { // if textbox is multiline
+
+                textLines.insert(textLines.begin() + cursorPosY + 1, "") ;
+
+                if(cursorPosX==(signed)textLines.at(cursorPosY).length()) { // if at the end of line, just do nothing
+                    moveCursor(right);
+                } else { // if not, substring the line
+                    std::string tempStr = textLines.at(cursorPosY).substr(cursorPosX);
+                    textLines.at(cursorPosY) = textLines.at(cursorPosY).substr(0,cursorPosX);
+                    moveCursor(right);
+                    textLines.at(cursorPosY) = tempStr;
+                }
+            }
+        }
+
+
+        if(c == 8) { // textbox: backspace
+            std::string currentLine = textLines.at(cursorPosY);
+
+            // if line length is 0, just remove the line
+            if(currentLine.length()==0) {
+
+                if(cursorPosY!=0) { // we cannot remove at begining
+
+                    int tempY = cursorPosY; 
+                    moveCursor(left);
+                    textLines.erase(textLines.begin()+tempY); // remove the line
+                }
+
+            } else {
+                if(cursorPosX==0) { // if we are at beginning, remove the line but move the contents
+
+                    int tempY = cursorPosY; // before moving shift the cursor
+                    moveCursor(left);
+                    std::string tempStr = textLines.at(tempY); // get the line
+                    textLines.erase(textLines.begin()+tempY);  // remove the line
+                    // connect the line to next line
+                    textLines.at(cursorPosY) = textLines.at(cursorPosY) + tempStr;
+                } else {
+                    textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX-1) + currentLine.substr(cursorPosX);
+                    moveCursor(left);
+                }
+            }
+        }
+
+        if(c == 127) { // textbox: delete (backspace but removes character at front)
+            std::string currentLine = textLines.at(cursorPosY);
+
+            // if at end of line, remove next line (if not end) and merge it
+            if(cursorPosX == (signed)currentLine.length()) {
+                if(cursorPosY < (signed)textLines.size()-1) { // if we are on end then dont remove
+                    textLines.at(cursorPosY) = currentLine + textLines.at(cursorPosY+1);
+                    textLines.erase(textLines.begin()+cursorPosY+1);
+                }
+            } else { // not at end of line, remove character at front
+                textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX) + currentLine.substr(cursorPosX+1);
+            }
+        }
+    }
+
+    bool textBox::isCursorAtTheEnd() {
+        if(cursorPosY==textLines.size()-1 && cursorPosX==textLines.at(cursorPosY).length()) return true;
+        return false;
+    }
+    bool textBox::isCursorAtTheBegin() {
+        if(cursorPosY==0&&cursorPosX==0) return true;
+        return false;
+    }
+    bool textBox::isCursorAtTheEndOfLine() {
+        if(cursorPosX==textLines.at(cursorPosY).length()) return true;
+        return false;
+    }
+
+    void textBox::moveCursorToWord(moveDirection dir) { // don't touch if its working
+
+        auto isBreakable = [](char c) {
+            char breakableCharacters[] = {'!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '+', '{', '}', '[', ']', '|', '\\', '`', '~', '/', '<', '>', '?','.', ';', '\'', ':', '"'};
+            for(int i=0; i < (signed)sizeof(breakableCharacters); i++) {
+                if(c==breakableCharacters[i]) return true;
+            }
+            return false;
+        };
+        
+        // newline and space are special separators [[test[ test]
+
+        std::string currentLine = textLines.at(cursorPosY);
+        int currentLineLen = currentLine.length();
+
+        if(dir==right) {
+             // are we at the end
+            if(isCursorAtTheEnd()) return;
+
+            if(isCursorAtTheEndOfLine()) { // skip to next line
+                moveCursor(right);
+                return;
+            }  
+            bool isFirstBreakable = isBreakable(currentLine.at(cursorPosX)); // check what type of characters we going through
+            bool isFirstSpace = currentLine.at(cursorPosX)==' ';
+            bool nextSpaceBreaks = !isFirstSpace; // dont break on spaces that we start
+
+            int i=cursorPosX;
+            while(1) {
+                char c = currentLine.at(i);
+
+                if(c==' '&&nextSpaceBreaks) break;
+
+                if(isFirstSpace) { // ignore first spaces
+                    if(c==' ') {
+                        if(isCursorAtTheEndOfLine()) break;
+                        moveCursor(right);
+                        goto skipIfLogicRight;
+                    } else {
+                        isFirstBreakable = isBreakable(c);
+                        nextSpaceBreaks = true;
+                        isFirstSpace = false;
+                    }
+                }
+
+                if(isFirstBreakable) { // if we are going through breakable characters, stop on non breakable
+                    if(isBreakable(c)) {
+                        if(isCursorAtTheEndOfLine()) break;
+                        moveCursor(right);
+                        nextSpaceBreaks = true;
+                    } else {
+                        break;
+                    }
+                } else { // if not, then stop on breakable
+                    if(isBreakable(c)) {
+                        break;
+                    } else {
+                        nextSpaceBreaks = true;
+                        if(isCursorAtTheEndOfLine()) break;
+                        moveCursor(right);
+                    }
+                }
+
+                skipIfLogicRight:
+                
+                i++;
+                if(i>=currentLineLen) break;
+            }
+
+        }
+
+        if(dir==left) {
+             // are we at the beginning 
+            if(isCursorAtTheBegin()) return;
+
+            if(cursorPosX==0) { // skip to previous line
+                moveCursor(left);
+                return;
+            }  
+
+            // if we are at the end of line (prevent .at() exception)
+            bool isFirstBreakable;
+            bool isFirstSpace;
+            bool nextSpaceBreaks;
+            bool moveCursorAfterBreak=true;
+            
+            moveCursor(left); // moving cursor allows to reuse code 
+            
+
+            isFirstBreakable = isBreakable(currentLine.at(cursorPosX)); // check what type of characters we going through
+            isFirstSpace = currentLine.at(cursorPosX)==' ';
+            nextSpaceBreaks = !isFirstSpace; // dont break on spaces that we start
+            
+
+            int i=cursorPosX;
+            while(1) {
+                char c = currentLine.at(i);
+
+                if(c==' '&&nextSpaceBreaks) break;
+
+                if(isFirstSpace) { // ignore first spaces
+                    if(c==' ') {
+                        if(cursorPosX==0) break;
+                        moveCursor(left);
+                        goto skipIfLogicLeft;
+                    } else {
+                        isFirstBreakable = isBreakable(c);
+                        nextSpaceBreaks = true;
+                        isFirstSpace = false;
+                    }
+                }
+
+                if(isFirstBreakable) { // if we are going through breakable characters, stop on non breakable
+                    if(isBreakable(c)) {
+                        if(cursorPosX==0) break;
+                        moveCursor(left);
+                        nextSpaceBreaks = true;
+                    } else {
+                        break;
+                    }
+                } else { // if not, then stop on breakable
+                    if(isBreakable(c)) {
+                        break;
+                    } else {
+                        nextSpaceBreaks = true;
+                        if(cursorPosX==0) break;
+                        moveCursor(left);
+                    }
+                }
+
+                skipIfLogicLeft:
+                
+                i--;
+                if(i<=0) {
+                    moveCursorAfterBreak=false;
+                    break;
+                }
+            }
+
+            if(moveCursorAfterBreak) moveCursor(right);
+
+        }
     }
 
     void textBox::setDimensions(int x,int y, int w,int h) {

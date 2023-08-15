@@ -57,7 +57,7 @@ $(OBJ_DIR)/editor/%.o: $(EDITOR_DIR)/%.cpp $(HEADERS)
 
 $(OBJ_DIR)/shared/%.o: $(SHARED_DIR)/%.cpp $(HEADERS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	-$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)/ $(BIN_DIR)/

@@ -114,10 +114,16 @@ namespace PityBoy::controls {
 
             std::string text;
             std::vector<std::string> textLines;
+            
 
             void convertTextIntoVector();
             int getTextLongestX(); // get "width of textbox" that is just length of longest line in textLines
             bool isTextCursorOnScreen();
+            
+            bool isCursorAtTheEnd();
+            bool isCursorAtTheBegin();
+            bool isCursorAtTheEndOfLine();
+
             void scrollToCursor();
 
             enum moveDirection {
@@ -127,7 +133,9 @@ namespace PityBoy::controls {
                 down
             };
 
+            void typeChar(char c);
             void moveCursor(moveDirection dir);
+            void moveCursorToWord(moveDirection dir); // ctrl+arrow left/right
 
             
 
