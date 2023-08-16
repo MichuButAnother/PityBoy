@@ -138,7 +138,11 @@ namespace PityBoy::controls {
             void typeChar(char c);
             void moveCursor(moveDirection dir);
             void moveCursorToWord(moveDirection dir, bool deleteWord=false); // ctrl+arrow left/right
+            void moveCursorToMouse(int mx, int my);
 
+            int selXstart, selYstart, selXend, selYend, selXbegin, selYbegin;
+            bool inSel;
+            void cursorSelUpdate(bool startSelType=false); // should be called after cursor position change
             
 
     };

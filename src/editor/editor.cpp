@@ -17,7 +17,7 @@
 PityBoy::PBWindow win;
 PityBoy::controls::label testLabel(10,10,"Hello world!",2);
 PityBoy::controls::button testButton(10,40,120,20,"Test button");
-PityBoy::controls::textBox testTextBox(10,70,16,8);
+PityBoy::controls::textBox testTextBox(0,64,30,10);
 
 int a=0;
 

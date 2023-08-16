@@ -19,11 +19,17 @@ namespace PityBoy::controls {
 
         this->realW = w*8+3;
         this->realH = h*9+2;
-        text = "WWWWWWWWWWWWWWWWWWWWW\nThis is line 2\ntstsetst\nbadgdshaeysa\nabc\nabc\nabc\nabc\ncrap\nmore crap\nidk to write";
+        text = "WWWWWWWWWWWWWWWWWFFFFFFFSSSSSSSSSSAAAAAAAAAAWWWWWWWWAAAAAWWWW\nThis is line 2\ntstsetst\nbadgdshaeysa\nabc\nabc\nabc\nabc\ncrap\nmore crap\nidk to write";
         convertTextIntoVector();
 
         cursorPosX = 0;
         cursorPosY = 0;
+
+        // inSel = true;
+        // selXstart=40;
+        // selYstart=0;
+        // selXend=2;
+        // selYend=3;
         
 
         defaultCursor.loadFromSystem(sf::Cursor::Arrow);
@@ -36,9 +42,14 @@ namespace PityBoy::controls {
     }
 
     void textBox::draw(PityBoy::controls::Parent* myWindow) {
+        const int bkColor = 3;
+        const int textColor = 1;
+        const int selColor = 2;
+        const int cursorColor = 0;
+
         frameCounter++;
-        myWindow->drawBox(x, y, realW, realH, 2);
-        myWindow->drawBox(x, y, realW, realH, 3, true);
+        myWindow->drawBox(x, y, realW, realH, bkColor, true);
+        //myWindow->drawBox(x, y, realW, realH, 2);
 
         for(unsigned int i=0;i<(unsigned)h;i++) { // unsigned to prevent compiler warnings
             if(scrollY+i>=textLines.size()) break;
@@ -46,7 +57,60 @@ namespace PityBoy::controls {
             if(scrollX<(signed)splitStr.length()) { // when to long to substr then just dont draw it
 
                 splitStr = splitStr.substr(scrollX, w);
-                myWindow->drawText(x+2, y+2+i*9, splitStr, 1);
+
+                // draw selection
+                if(inSel) {
+
+                    int dx = scrollX;
+                    int dy = scrollY+i; // where we are
+
+                    if(dy>=selYstart&&dy<=selYend) { // this line is in selection
+
+                        if(dy==selYstart) { // this line starts selection
+
+                            int sx=selXstart-scrollX; // starting position of selection
+                            if(sx<0) sx = 0; 
+                            
+                            int wx=splitStr.length(); // length of selection on current line
+
+                            if(selYstart==selYend) { // also if selection ends on same line, draw in other way with proper width
+                               
+                                wx = selXend - selXstart; // this code is somehow working mess
+                                int dsx = 0; // amount of width to subtract
+
+                                if(scrollX>selXstart) dsx = scrollX - selXstart;
+                                std::cout<<"vars:\nwx: "<<wx<<"\nsx: "<<sx<<std::endl;
+                                if(sx+wx>w) {
+                                    dsx = dsx + (sx+wx)-w;
+                                } 
+                                if(sx==0&&wx>w) {
+                                    dsx = wx - (selXend - scrollX);   
+                                }
+                                if(wx-dsx>w) dsx = wx - w;
+
+                                int dwidth = wx*8 - dsx*8 + 1;
+                                if(dwidth <= 1) dwidth = 0;
+                                std::cout<<"dsx: "<<dsx<<std::endl;
+                                if(scrollX+w>selXstart) myWindow->drawBox(x+1+sx*8, y+1+i*9, dwidth , 9, selColor, true); // draw if end on same line
+                            } else {
+                                if(scrollX+w>selXstart) myWindow->drawBox(x+1+sx*8, y+1+i*9, wx*8 - sx*8+1, 9, selColor, true); // draw if end on not same line
+                            }
+                            
+                        } else if(dy==selYend) { // this line ends selection
+                        
+                            int sx=selXend-scrollX;
+                            if(scrollX<selXend) myWindow->drawBox(x+1, y+1+i*9, sx*8+1, 9, selColor, true);
+
+                        } else { // this line is entire selected
+
+                            myWindow->drawBox(x+1, y+1+i*9, splitStr.length()*8+1, 9, selColor, true);
+
+                        }
+
+                    }
+                }
+
+                myWindow->drawText(x+2, y+2+i*9, splitStr, textColor);
             }
         }
 
@@ -65,6 +129,19 @@ namespace PityBoy::controls {
             lastCursor = false;
         }
 
+        if(held&&frameCounter%5==0) {
+            // smooth scroll while hed
+            if(cursorPosY>=scrollY+h) scrollY++;
+            if(cursorPosY<scrollY) scrollY--;            
+
+            if(cursorPosX>=scrollX+w) scrollX++;
+            if(cursorPosX<scrollX) {
+                scrollX--;
+                scrollToCursor();
+            }
+            
+        }
+
         if(focused) { // in textbox blinking cursor
             if(frameCounter%60<30) {
                 int dx=cursorPosX - scrollX;
@@ -72,7 +149,7 @@ namespace PityBoy::controls {
 
                 if(isTextCursorOnScreen()) { // check is the cursor in bounds on screen
                     for(int i=0; i<8; i++) {
-                        myWindow->drawPixel(x+2+dx*8-1, y+2+dy*9+i, 0);
+                        myWindow->drawPixel(x+2+dx*8-1, y+2+dy*9+i, cursorColor);
                     }
                     //myWindow->drawChar(x+2+dx*8, y+2+dy*9, '|', 0);
                 }
@@ -94,32 +171,24 @@ namespace PityBoy::controls {
                     held = true;
                     frameCounter = 0;
 
-                    // calculate block cursor position based from mouse coordinates on mouse press on text box
-                    // note: i think it is better to don't touch this code
-                    int cx=mousePos.x - x - 5;
-                    int cy=mousePos.y - y - 1;
-                    int cxfix = ceil(cx/(float)8); // fix for X going outside view area due to calculation
-                    if(cxfix==w) cxfix--;
-                    cursorPosX = scrollX +  cxfix;
-                    cursorPosY = scrollY + ceil(cy/(float)9) - 1;
-                    
+                    moveCursorToMouse(mousePos.x, mousePos.y);
 
-                    if(cursorPosY >= (signed)textLines.size()) { // outside Y
-                        cursorPosY = textLines.size() - 1;
-                        cursorPosX = textLines.at(cursorPosY).length();
-                    }
-
-                    if(cursorPosX > (signed)textLines.at(cursorPosY).length()) {
-                        cursorPosX = textLines.at(cursorPosY).length();
-                    }
-
-                    rememberXPos = cursorPosX;
+                    cursorSelUpdate(true);
 
                 } else {
                     focused = false;
                 }
             }
 
+        }
+
+        if(event.type == sf::Event::MouseMoved) {
+            if(held) {
+                sf::Vector2i mousePos = myWindow->getMousePos();
+                moveCursorToMouse(mousePos.x, mousePos.y);
+                cursorSelUpdate();
+
+            }
         }
 
         if(event.type == sf::Event::MouseButtonReleased) {
@@ -276,10 +345,10 @@ namespace PityBoy::controls {
 
 
         ##  Working with Words:
-        Ctrl + Left Arrow: Move cursor to the beginning of the previous word.   DONE 
-        Ctrl + Right Arrow: Move cursor to the beginning of the next word.      DONE
-        Ctrl + Backspace: Delete the previous word.                             DONE
-        Ctrl + Delete: Delete the next word.
+        Ctrl + Left Arrow: Move cursor to the beginning of the previous word.   DONE, to test
+        Ctrl + Right Arrow: Move cursor to the beginning of the next word.      DONE, to test
+        Ctrl + Backspace: Delete the previous word.                             DONE, to test
+        Ctrl + Delete: Delete the next word.                                    DONE, to test
         ## Moving the Cursor:
         Home: Move cursor to the beginning of the current line.                 DONE
         End: Move cursor to the end of the current line.                        DONE
@@ -291,7 +360,6 @@ namespace PityBoy::controls {
         Shift + Left/Right Arrow Keys: Select characters one at a time.
         Shift + Up/Down Arrow Keys: Select lines one at a time.
         Shift + Ctrl + Left/Right Arrow Keys: Select words. Keep pressing the arrow keys to select additional words.
-        Shift + Ctrl + Up/Down Arrow Keys: Select paragraphs.
         Shift + Home: Select the text between the cursor and the beginning of the current line.
         Shift + End: Select the text between the cursor and the end of the current line.
         Shift + Ctrl + Home: Select the text between the cursor and the beginning of the text entry field.
@@ -302,7 +370,7 @@ namespace PityBoy::controls {
         ## Editing:
         Ctrl + C: Copy selected text.
         Ctrl + X: Cut selected text.
-        Ctrl + V: Paste text at cursor.
+        Ctrl + V: Paste text at cursor.         DONE
         Ctrl + Z: Undo.
         Ctrl + Y: Redo.
         ## While text is selected:
@@ -338,12 +406,11 @@ namespace PityBoy::controls {
         if(!isTextCursorOnScreen()) {
             scrollX = cursorPosX-w+1;
             if(scrollX<0) scrollX = 0;
-
-            // check if cursor is really invisible on Y axis before forcing scrollY
-
-            if(!((cursorPosY-scrollY) >= 0 && (cursorPosY-scrollY) < h)) {
-                scrollY = cursorPosY;
-            }
+        }
+        // check if cursor is really invisible on Y axis before forcing scrollY
+        if(!((cursorPosY-scrollY) >= 0 && (cursorPosY-scrollY) < h)) {
+            scrollY = cursorPosY -1 ;
+            if(scrollY<0) scrollY=0;
         }
     }
 
@@ -424,6 +491,7 @@ namespace PityBoy::controls {
         scrollToCursor();
     }
 
+    // textbox: typeCharacter
     void textBox::typeChar(char c) {
         bool canInsertChar=true;
 
@@ -507,6 +575,12 @@ namespace PityBoy::controls {
         }
 
         if(c == 127) { // textbox: delete (backspace but removes character at front)
+            if(controlHeld) {
+                controlHeld = false; // to prevent recursion, because moveCursorToWord calls typeChar to remove character
+                moveCursorToWord(right, true);
+                controlHeld = true;
+                return;
+            }
             std::string currentLine = textLines.at(cursorPosY);
 
             // if at end of line, remove next line (if not end) and merge it
@@ -519,7 +593,9 @@ namespace PityBoy::controls {
                 textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX) + currentLine.substr(cursorPosX+1);
             }
         }
+        cursorSelUpdate();
     }
+    //////////
 
     bool textBox::isCursorAtTheEnd() {
         if(cursorPosY==textLines.size()-1 && cursorPosX==textLines.at(cursorPosY).length()) return true;
@@ -546,17 +622,27 @@ namespace PityBoy::controls {
         
         // newline and space are special separators [[test[ test]
 
-        std::string currentLine = textLines.at(cursorPosY);
-        int currentLineLen = currentLine.length();
-
         if(dir==right) {
              // are we at the end
             if(isCursorAtTheEnd()) return;
 
+            bool calledAtEnd=false;
+
             if(isCursorAtTheEndOfLine()) { // skip to next line
                 moveCursor(right);
-                return;
+                calledAtEnd = true;
             }  
+
+            std::string currentLine = textLines.at(cursorPosY);
+            int currentLineLen = currentLine.length();
+
+            if(currentLineLen==0) {
+                if(deleteWord) {
+                    typeChar(8);
+                }
+                return;
+            }
+
             bool isFirstBreakable = isBreakable(currentLine.at(cursorPosX)); // check what type of characters we going through
             bool isFirstSpace = currentLine.at(cursorPosX)==' ';
             bool nextSpaceBreaks = !isFirstSpace; // dont break on spaces that we start
@@ -571,7 +657,6 @@ namespace PityBoy::controls {
                     if(c==' ') {
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
-                        if(deleteWord) typeChar(8);
                         goto skipIfLogicRight;
                     } else {
                         isFirstBreakable = isBreakable(c);
@@ -584,7 +669,6 @@ namespace PityBoy::controls {
                     if(isBreakable(c)) {
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
-                        if(deleteWord) typeChar(8);
                         nextSpaceBreaks = true;
                     } else {
                         break;
@@ -596,14 +680,23 @@ namespace PityBoy::controls {
                         nextSpaceBreaks = true;
                         if(isCursorAtTheEndOfLine()) break;
                         moveCursor(right);
-                        if(deleteWord) typeChar(8);
                     }
                 }
 
                 skipIfLogicRight:
+
+                if(deleteWord) {
+                    moveCursor(left);
+                    typeChar(127);
+                }
                 
                 i++;
                 if(i>=currentLineLen) break;
+
+            }
+
+            if(calledAtEnd&&deleteWord) {
+                typeChar(8);
             }
 
         }
@@ -615,11 +708,14 @@ namespace PityBoy::controls {
             if(cursorPosX==0) { // skip to previous line
                 if(deleteWord) {
                     typeChar(8);
+                    return;
                 } else {
                     moveCursor(left);
                 }
-                return;
             }  
+
+            std::string currentLine = textLines.at(cursorPosY);
+            int currentLineLen = currentLine.length();
 
             // if we are at the end of line (prevent .at() exception)
             bool isFirstBreakable; 
@@ -706,6 +802,74 @@ namespace PityBoy::controls {
             }
 
         }
+    }
+
+    void textBox::moveCursorToMouse(int mx, int my) {
+        // calculate block cursor position based from mouse coordinates on mouse press on text box
+        // note: i think it is better to don't touch this code
+        int cx=mx - x - 5;
+        int cy=my - y - 1;
+        int cxfix = ceil(cx/(float)8); // fix for X going outside view area due to calculation
+        if(cxfix==w) cxfix--;
+        cursorPosX = cxfix;
+        cursorPosY = ceil(cy/(float)9) - 1;
+
+        if(cursorPosX<-1) cursorPosX = -1;
+        if(cursorPosY<-1) cursorPosY = -1;
+        if(cursorPosX>w) cursorPosX = w;
+        if(cursorPosY>h) cursorPosY = h;
+
+        cursorPosX = scrollX + cursorPosX;
+        cursorPosY = scrollY + cursorPosY;
+
+        if(cursorPosX<0) cursorPosX=0;
+        if(cursorPosY<0) cursorPosY=0;
+        
+        if(cursorPosY >= (signed)textLines.size()) { // outside Y
+            cursorPosY = textLines.size() - 1;
+            cursorPosX = textLines.at(cursorPosY).length();
+        }
+
+        if(cursorPosX > (signed)textLines.at(cursorPosY).length()) {
+            cursorPosX = textLines.at(cursorPosY).length();
+        }
+
+        rememberXPos = cursorPosX;
+    }
+
+    void textBox::cursorSelUpdate(bool startSel) {
+
+        if(startSel) {
+            selXstart = cursorPosX;
+            selYstart = cursorPosY;
+            selXend = cursorPosX;
+            selYend = cursorPosY;
+            selXbegin = cursorPosX;
+            selYbegin = cursorPosY;
+            inSel = true;
+            return;
+        }
+
+        // if moved right/down
+
+        if((cursorPosX>selXbegin&&cursorPosY==selYbegin)||cursorPosY>selYbegin) {
+            selXstart = selXbegin;
+            selYstart = selYbegin;
+            selXend = cursorPosX;
+            selYend = cursorPosY;
+        } else if(cursorPosX<selXbegin||cursorPosY<selYbegin) {
+            selXend = selXbegin;
+            selYend = selYbegin;
+            selXstart = cursorPosX;
+            selYstart = cursorPosY;
+        }
+
+        if(cursorPosX==selXbegin&&cursorPosY==selYbegin) {
+            inSel = false;
+        } else {
+            inSel = true;
+        }
+
     }
 
     void textBox::setDimensions(int x,int y, int w,int h) {
