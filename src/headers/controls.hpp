@@ -118,7 +118,10 @@ namespace PityBoy::controls {
             std::string text;
             std::vector<std::string> textLines;
 
+            std::string undoHistory[100];
+
             void convertTextIntoVector();
+            void convertVectorIntoText();
             int getTextLongestX(); // get "width of textbox" that is just length of longest line in textLines
             bool isTextCursorOnScreen();
             
@@ -143,6 +146,7 @@ namespace PityBoy::controls {
             int selXstart, selYstart, selXend, selYend, selXbegin, selYbegin;
             bool inSel;
             void cursorSelUpdate(bool startSelType=false); // should be called after cursor position change
+            void deleteSel();
             
 
     };

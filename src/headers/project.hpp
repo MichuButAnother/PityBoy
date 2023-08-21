@@ -12,7 +12,7 @@ namespace PityBoy {
         int16_t PBVersion;
         char PBProjectName[32];
     };
-
+ 
     class PBProjectManager {
         public:
             int openProject(std::string path);

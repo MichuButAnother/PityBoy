@@ -8,7 +8,7 @@
 #include "../headers/font.hpp"
 #include "../headers/icons.hpp"
 #include "../headers/graphics.hpp"
-#include "../headers/sprite.hpp"
+//#include "../headers/sprite.hpp"
 
 #include "../headers/luaapi.hpp"
 #include "../headers/commonapi.hpp"

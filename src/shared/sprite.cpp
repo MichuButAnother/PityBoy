@@ -6,7 +6,11 @@
 #include <string.h>
 
 namespace PityBoy {
-    void PBSprite::draw(PityBoy::PBWindow* window, int drawX, int drawY, int scale, int transparentColor) {
+    PBSprites::PBSprites() {
+        memset(spriteData, 0, sizeof(uint8_t)*512*64);
+    }
+
+    void PBSprites::draw(PityBoy::PBWindow* window, int index, int drawX, int drawY, int scale, int transparentColor) {
         // "weird" for loops for sprite scaling support
 
         // sprite store ordering:
@@ -15,9 +19,9 @@ namespace PityBoy {
         // ...
 
         int i=0; // pixel data index
-        for(int y = 0; y < 8*scale ; y=y+scale) {
-            for(int x = 0; x < 8*scale; x=x+scale) {
-                int color=spriteData[i];
+        for(int y = 0; y < 8*scale ; y+=scale) {
+            for(int x = 0; x < 8*scale; x+=scale) {
+                int color=spriteData[index][i];
                 i++;
 
                 if(color!=transparentColor) { // is the pixel color market as transparent? if yes then dont' draw
@@ -29,9 +33,16 @@ namespace PityBoy {
                     }
                     
                 }
-
             }   
         }
+    } 
+// awake up broo
+    uint8_t* PBSprites::getBytes(int index) { 
+        return spriteData[index];
+    }
 
+    void PBSprites::setBytes(int index, uint8_t* data) { // should be ok
+        memcpy(spriteData[index], data, sizeof(uint8_t)*64);  
+        // wake up linter!!!
     }
 }
