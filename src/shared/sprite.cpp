@@ -36,13 +36,13 @@ namespace PityBoy {
             }   
         }
     } 
-// awake up broo
+
     uint8_t* PBSprites::getBytes(int index) { 
         return spriteData[index];
     }
 
-    void PBSprites::setBytes(int index, uint8_t* data) { // should be ok
+    void PBSprites::setBytes(int index, uint8_t* data) { 
         memcpy(spriteData[index], data, sizeof(uint8_t)*64);  
-        // wake up linter!!!
+
     }
 }
