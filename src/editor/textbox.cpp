@@ -9,6 +9,8 @@
 
 */
 
+#define textbox_debug
+
 namespace PityBoy::controls {
 
     textBox::textBox(int x, int y, int w, int h) { // width and height are here *8 !!
@@ -158,7 +160,10 @@ namespace PityBoy::controls {
     }
 
     void textBox::handleEvent(sf::Event event, PityBoy::controls::Parent* myWindow) {
-        try { // safeguard for typed code in pityboy editor
+
+        #ifndef textbox_debug 
+        try { // safeguard for typed code in pityboy editor (if not debug)
+        #endif
 
         if(event.type == sf::Event::MouseButtonPressed) {
 
@@ -175,12 +180,36 @@ namespace PityBoy::controls {
                         cursorSelUpdate(true);
                     }
 
+                    int lastCursorX = cursorPosX; // for double click
+                    int lastCursorY = cursorPosY; 
+
                     moveCursorToMouse(mousePos.x, mousePos.y);
 
                     if(shiftHeld) {
                         cursorSelUpdate();
                     } else {
                         cursorSelUpdate(true);
+                    }
+
+                    // double click
+                    int elapsedTime = doubleClickClock.getElapsedTime().asMilliseconds();
+                    if(elapsedTime<maxDoubleClickDelay) {
+                        if(lastCursorX==cursorPosX && lastCursorY==cursorPosY) {
+                            // we need to select entire word, so we will do that using moveCursorToWord
+                            if(cursorPosX!=(signed)textLines.at(cursorPosY).length()) {
+                                moveCursor(right);
+                            }
+                            moveCursorToWord(left);
+                            bool lastShiftStatus = shiftHeld;
+                            shiftHeld = true;
+                            cursorSelUpdate(true);
+                            moveCursorToWord(right);
+                            cursorSelUpdate();
+                            shiftHeld = lastShiftStatus;
+                        }
+                
+                    } else {
+                        doubleClickClock.restart();
                     }
 
                 } else {
@@ -263,19 +292,27 @@ namespace PityBoy::controls {
             }
             
 
+            bool canMoveLR=true;
+
+            if(inSel&&!shiftHeld) {
+                canMoveLR = false;
+                inSel = false;
+                if(selXstart==selXend&&selYstart==selYend) canMoveLR = true; 
+            }
+
             // textbox: arrows
             if(event.key.code == sf::Keyboard::Right) { // right arrow
                 if(event.key.control) {
                     moveCursorToWord(right);
                 } else {
-                    moveCursor(right);    
+                    if(canMoveLR) moveCursor(right);    
                 }
             }
             if(event.key.code == sf::Keyboard::Left) { // Left arrow
                 if(event.key.control) {
                     moveCursorToWord(left);
                 } else {
-                    moveCursor(left); 
+                    if(canMoveLR) moveCursor(left); 
                 }
             }
 
@@ -361,15 +398,22 @@ namespace PityBoy::controls {
                 shiftHeld = AshiftHeld;
             }
 
+            // textbox: Ctrl+C
+
+            
+
 
         }
 
+
+        #ifndef textbox_debug 
         } catch(const std::exception& e) {
             std::cout << "Fatal error!" << std::endl;
             std::cout << e.what() << std::endl;
             // in case of fatal error in string manipulation in textbox we can save user code
             exit(0);
         }
+        #endif
 
     } 
 
@@ -405,6 +449,7 @@ namespace PityBoy::controls {
         Shift + Page Down: Select a frame of text below the cursor.                                                     DONE
         Shift + Page Up: Select a frame of text above the cursor.                                                       DONE
         Ctrl + A: Select all text.                                                                                      DONE
+        Mouse double click: Select the word                                                                             DONE (can't select spaces)
         ## Editing:
         Ctrl + C: Copy selected text.
         Ctrl + X: Cut selected text.
@@ -453,18 +498,12 @@ namespace PityBoy::controls {
     }
 
     void textBox::moveCursor(moveDirection direction) { // the black magic happens here...
-
-        bool canMoveLR=true;
-
-        if(inSel&&!shiftHeld) {
-            canMoveLR = false;
-            inSel = false;
-        }
+        
         if(shiftHeld&&!inSel) {
             cursorSelUpdate(true);
         }
 
-        if(direction == moveDirection::right && canMoveLR) {
+        if(direction == moveDirection::right) {
             cursorPosX++;
             if(cursorPosX>(signed)textLines.at(cursorPosY).length()) { // if at the end
                 if(cursorPosY+1 < (signed)textLines.size()) { // next line if we can
@@ -484,7 +523,7 @@ namespace PityBoy::controls {
             rememberXPos = cursorPosX;
         }
         
-        if(direction == moveDirection::left && canMoveLR) {
+        if(direction == moveDirection::left) {
             cursorPosX--;
             if(cursorPosX<0) { // if at the beg
                 if(cursorPosY-1>=0) { // go to end of line before
@@ -672,6 +711,11 @@ namespace PityBoy::controls {
                 textLines.at(cursorPosY) = currentLine.substr(0,cursorPosX) + currentLine.substr(cursorPosX+1);
             }
         }
+
+        if(shiftHeld) { 
+            cancelSel();
+        }
+
         cursorSelUpdate();
     }
     //////////
@@ -787,14 +831,23 @@ namespace PityBoy::controls {
             if(cursorPosX==0) { // skip to previous line
                 if(deleteWord) {
                     typeChar(8);
-                    return;
                 } else {
                     moveCursor(left);
                 }
+                return;
             }  
 
             std::string currentLine = textLines.at(cursorPosY);
             int currentLineLen = currentLine.length();
+
+            if(currentLineLen==1&&cursorPosX==1) { // quick fix
+                if(deleteWord) {
+                    typeChar(8);
+                } else {
+                    moveCursor(left);
+                }
+                return;
+            }
 
             // if we are at the end of line (prevent .at() exception)
             bool isFirstBreakable; 
@@ -803,6 +856,15 @@ namespace PityBoy::controls {
             bool moveCursorAfterBreak=true;
             
             moveCursor(left); // moving cursor allows to reuse code (if not using deleteChar)
+
+            if(cursorPosX==0) {
+                // okay we dont need to do anything, just delete char ahead if delete
+                if(deleteWord) {
+                    moveCursor(right);
+                    typeChar(8);
+                }
+                return;
+            }
             
 
             isFirstBreakable = isBreakable(currentLine.at(cursorPosX)); // check what type of characters we going through
@@ -1000,5 +1062,15 @@ namespace PityBoy::controls {
         }
 
     } 
+
+    void textBox::cancelSel() {
+        inSel = false;
+        selXstart = cursorPosX;
+        selYstart = cursorPosY;
+        selXbegin = cursorPosX;
+        selYbegin = cursorPosY;
+        selXend = cursorPosX;
+        selYend = cursorPosY;
+    }
 
 }

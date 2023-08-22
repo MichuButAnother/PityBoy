@@ -147,6 +147,11 @@ namespace PityBoy::controls {
             bool inSel;
             void cursorSelUpdate(bool startSelType=false); // should be called after cursor position change
             void deleteSel();
+            void cancelSel();
+
+            int maxDoubleClickDelay = 500;
+            sf::Clock doubleClickClock;
+            
             
 
     };
