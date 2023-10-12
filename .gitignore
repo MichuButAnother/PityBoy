@@ -35,3 +35,4 @@ obj/
 bin/
 
 .vscode/
+.idea/
